@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Credencial</title>
+
+<style>
+body {
+    margin: 0;
+    padding: 0;
+    background: #ddd;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-family: Arial, sans-serif;
+}
+
+/* ===== CONTENEDOR PRINCIPAL ===== */
+#credencial {
+    position: relative;
+    width: 2040px;
+    height: 3325px;
+    background: white;
+    overflow: hidden;
+}
+
+/* ===== CAPA 1 – FOTO (NARANJA) ===== */
+#capa-foto {
+    position: absolute;
+    top: 300px;
+    left: 120px;
+    width: 1800px;
+    height: 1100px;
+    border: 5px solid orange;
+    z-index: 1;
+}
+#capa-foto img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* ===== CAPA 2 – FONDO (ROJO) ===== */
+#capa-fondo {
+    position: absolute;
+    inset: 0;
+    border: 5px solid red;
+    z-index: 2;
+}
+#capa-fondo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* ===== CAPA 3 – QR (VERDE) ===== */
+#capa-qr {
+    position: absolute;
+    bottom: 500px;
+    left: 200px;
+    width: 500px;
+    height: 500px;
+    border: 5px solid green;
+    z-index: 3;
+}
+#capa-qr img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* ===== CAPA 4 – TEXTOS (MORADO) ===== */
+#capa-texto {
+    position: absolute;
+    bottom: 850px;
+    left: 200px;
+    width: 1640px;
+    height: 500px;
+    border: 5px solid purple;
+    z-index: 4;
+    text-align: center;
+    color: #000;
+}
+
+#nombre {
+    font-size: 72px;
+    font-weight: bold;
+    margin-top: 40px;
+}
+#id {
+    font-size: 48px;
+    margin-top: 20px;
+}
+#carrera {
+    font-size: 48px;
+    margin-top: 20px;
+}
+
+#periodos {
+    display: flex;
+    justify-content: center;
+    gap: 250px;
+    margin-top: 40px;
+    font-size: 36px;
+}
+
+/* ===== IMPRESIÓN ===== */
+@media print {
+    body {
+        background: none;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div id="credencial">
+
+    <!-- FOTO -->
+    <div id="capa-foto">
+        <img id="foto">
+    </div>
+
+    <!-- FONDO -->
+    <div id="capa-fondo">
+        <img id="fondo">
+    </div>
+
+    <!-- QR -->
+    <div id="capa-qr">
+        <img id="qr">
+    </div>
+
+    <!-- TEXTO -->
+    <div id="capa-texto">
+        <div id="nombre"></div>
+        <div id="id"></div>
+        <div id="carrera"></div>
+        <div id="periodos">
+            <div id="ingreso"></div>
+            <div id="egreso"></div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+/* ===== CSV ===== */
+const CSV_URL =
+"https://docs.google.com/spreadsheets/d/e/2PACX-1vR7VpRlusZqfiI-WB16JvLtLpX-kkCFZWiKgTMQzW35p_tfOGxY_tpQRW56XnAOdKIA_1F-4uSuX47P/pub?gid=970287024&single=true&output=csv";
+
+/* ===== PARÁMETRO URL ===== */
+const params = new URLSearchParams(window.location.search);
+const matriculaBuscar = params.get("matricula");
+
+if (!matriculaBuscar) {
+    document.body.innerHTML =
+        "<h2 style='margin-top:40px'>Falta ?matricula= en la URL</h2>";
+}
+
+/* ===== PARSER CSV (MISMA LÓGICA QUE TU INDEX) ===== */
+function parseCSV(texto) {
+    return texto
+        .trim()
+        .split("\n")
+        .map(fila =>
+            fila.split(",").map(v => v.replace(/\"/g, "").trim())
+        );
+}
+
+/* ===== CARGA DE DATOS ===== */
+async function cargarDatos() {
+    const resp = await fetch(CSV_URL);
+    const texto = await resp.text();
+
+    const data = parseCSV(texto);
+    const headers = data[0];
+    const rows = data.slice(1);
+
+    const fila = rows.find(r => r[headers.indexOf("ID9DIG")] === matriculaBuscar);
+
+    if (!fila) {
+        document.body.innerHTML =
+            `<h2 style="margin-top:40px">No se encontró la matrícula ${matriculaBuscar}</h2>`;
+        return;
+    }
+
+    const get = col => fila[headers.indexOf(col)];
+
+    document.getElementById("foto").src   = get("Foto");
+    document.getElementById("fondo").src = get("Fondo");
+    document.getElementById("qr").src     = get("QR");
+
+    document.getElementById("nombre").textContent  = get("Nombre");
+    document.getElementById("id").textContent      = "ID: " + get("ID9DIG");
+    document.getElementById("carrera").textContent = get("Carrera");
+    document.getElementById("ingreso").textContent = "Ingreso: " + get("AñoIngreso");
+    document.getElementById("egreso").textContent  = "Egreso: " + get("AñoEgreso");
+}
+
+cargarDatos();
+</script>
+
+</body>
+</html>
