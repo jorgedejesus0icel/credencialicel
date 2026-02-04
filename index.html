@@ -5,27 +5,34 @@
 <title>Credencial</title>
 
 <style>
+/* ===== BASE ===== */
 body {
     margin: 0;
     padding: 0;
     background: #ddd;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
     font-family: Arial, sans-serif;
 }
 
-/* ===== CONTENEDOR PRINCIPAL ===== */
+/* ===== VIEWPORT ESCALABLE ===== */
+#viewport {
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: auto;
+}
+
+/* ===== FORMATO BASE ===== */
 #credencial {
     position: relative;
     width: 2040px;
     height: 3325px;
-    background: white;
-    overflow: hidden;
+    background: #fff;
+    transform-origin: top center;
 }
 
-/* ===== CAPA 1 – FOTO (NARANJA) ===== */
+/* ===== CAPA FOTO (NARANJA) ===== */
 #capa-foto {
     position: absolute;
     top: 300px;
@@ -41,7 +48,7 @@ body {
     object-fit: cover;
 }
 
-/* ===== CAPA 2 – FONDO (ROJO) ===== */
+/* ===== CAPA FONDO (ROJO) ===== */
 #capa-fondo {
     position: absolute;
     inset: 0;
@@ -54,10 +61,10 @@ body {
     object-fit: cover;
 }
 
-/* ===== CAPA 3 – QR (VERDE) ===== */
+/* ===== CAPA QR (VERDE) ===== */
 #capa-qr {
     position: absolute;
-    bottom: 500px;
+    bottom: 520px;
     left: 200px;
     width: 500px;
     height: 500px;
@@ -70,39 +77,44 @@ body {
     object-fit: contain;
 }
 
-/* ===== CAPA 4 – TEXTOS (MORADO) ===== */
+/* ===== CAPA TEXTO (MORADO) ===== */
 #capa-texto {
     position: absolute;
     bottom: 850px;
-    left: 200px;
-    width: 1640px;
-    height: 500px;
+    left: 0;
+    width: 100%;
+    height: 520px;
+    padding: 40px 120px; /* margen interno */
+    box-sizing: border-box;
     border: 5px solid purple;
     z-index: 4;
-    text-align: center;
     color: #000;
+    text-align: center;
 }
 
+/* Textos */
 #nombre {
-    font-size: 72px;
+    font-size: 82px;
     font-weight: bold;
-    margin-top: 40px;
-}
-#id {
-    font-size: 48px;
-    margin-top: 20px;
-}
-#carrera {
-    font-size: 48px;
-    margin-top: 20px;
+    margin-bottom: 25px;
 }
 
-#periodos {
+#id {
+    font-size: 54px;
+    margin-bottom: 20px;
+}
+
+#carrera {
+    font-size: 54px;
+    margin-bottom: 40px;
+}
+
+/* Ingreso / Egreso separados */
+#fechas {
     display: flex;
-    justify-content: center;
-    gap: 250px;
-    margin-top: 40px;
-    font-size: 36px;
+    justify-content: space-between;
+    font-size: 42px;
+    padding: 0 200px;
 }
 
 /* ===== IMPRESIÓN ===== */
@@ -110,33 +122,20 @@ body {
     body {
         background: none;
     }
+    #credencial {
+        transform: scale(1) !important;
+    }
+    #viewport {
+        height: auto;
+    }
 }
-    /* CONTENEDOR QUE SE AJUSTA A LA VENTANA */
-#viewport {
-    width: 100%;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    overflow: auto;
-}
-    /* DISEÑO BASE (NO CAMBIA) */
-#credencial {
-    position: relative;
-    width: 2040px;
-    height: 3325px;
-    background: white;
-    transform-origin: top center;
-}
-
-
 </style>
 </head>
 
 <body>
 
 <div id="viewport">
-    <div id="credencial">
+<div id="credencial">
 
     <!-- FOTO -->
     <div id="capa-foto">
@@ -158,20 +157,36 @@ body {
         <div id="nombre"></div>
         <div id="id"></div>
         <div id="carrera"></div>
-        <div id="periodos">
+
+        <div id="fechas">
             <div id="ingreso"></div>
             <div id="egreso"></div>
         </div>
     </div>
 
 </div>
+</div>
 
 <script>
+/* ===== ESCALADO AUTOMÁTICO ===== */
+const BASE_WIDTH = 2040;
+const BASE_HEIGHT = 3325;
+
+function ajustarEscala() {
+    const viewport = document.getElementById("viewport");
+    const scaleX = viewport.clientWidth / BASE_WIDTH;
+    const scaleY = viewport.clientHeight / BASE_HEIGHT;
+    const scale = Math.min(scaleX, scaleY);
+    document.getElementById("credencial").style.transform = `scale(${scale})`;
+}
+
+window.addEventListener("resize", ajustarEscala);
+window.addEventListener("load", ajustarEscala);
+
 /* ===== CSV ===== */
 const CSV_URL =
 "https://docs.google.com/spreadsheets/d/e/2PACX-1vR7VpRlusZqfiI-WB16JvLtLpX-kkCFZWiKgTMQzW35p_tfOGxY_tpQRW56XnAOdKIA_1F-4uSuX47P/pub?gid=970287024&single=true&output=csv";
 
-/* ===== PARÁMETRO URL ===== */
 const params = new URLSearchParams(window.location.search);
 const matriculaBuscar = params.get("matricula");
 
@@ -180,22 +195,20 @@ if (!matriculaBuscar) {
         "<h2 style='margin-top:40px'>Falta ?matricula= en la URL</h2>";
 }
 
-/* ===== PARSER CSV (MISMA LÓGICA QUE TU INDEX) ===== */
+/* ===== PARSER CSV ===== */
 function parseCSV(texto) {
     return texto
         .trim()
         .split("\n")
-        .map(fila =>
-            fila.split(",").map(v => v.replace(/\"/g, "").trim())
-        );
+        .map(f => f.split(",").map(v => v.replace(/\"/g, "").trim()));
 }
 
 /* ===== CARGA DE DATOS ===== */
 async function cargarDatos() {
     const resp = await fetch(CSV_URL);
     const texto = await resp.text();
-
     const data = parseCSV(texto);
+
     const headers = data[0];
     const rows = data.slice(1);
 
@@ -203,14 +216,14 @@ async function cargarDatos() {
 
     if (!fila) {
         document.body.innerHTML =
-            `<h2 style="margin-top:40px">No se encontró la matrícula ${matriculaBuscar}</h2>`;
+            `<h2>No se encontró la matrícula ${matriculaBuscar}</h2>`;
         return;
     }
 
     const get = col => fila[headers.indexOf(col)];
 
     document.getElementById("foto").src   = get("Foto");
-    document.getElementById("fondo").src = get("Fondo");
+    document.getElementById("fondo").src  = get("Fondo");
     document.getElementById("qr").src     = get("QR");
 
     document.getElementById("nombre").textContent  = get("Nombre");
@@ -221,29 +234,7 @@ async function cargarDatos() {
 }
 
 cargarDatos();
-    
-const BASE_WIDTH = 2040;
-const BASE_HEIGHT = 3325;
-
-function ajustarEscala() {
-    const viewport = document.getElementById("viewport");
-
-    const scaleX = viewport.clientWidth / BASE_WIDTH;
-    const scaleY = viewport.clientHeight / BASE_HEIGHT;
-
-    /* Mantener proporción */
-    const scale = Math.min(scaleX, scaleY);
-
-    document.getElementById("credencial").style.transform =
-        `scale(${scale})`;
-}
-
-window.addEventListener("resize", ajustarEscala);
-window.addEventListener("load", ajustarEscala);
 </script>
-
-    </div>
-</div>
 
 </body>
 </html>
