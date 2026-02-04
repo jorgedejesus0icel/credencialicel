@@ -4,29 +4,23 @@
 <meta charset="UTF-8">
 <title>Credencial</title>
 
-<!-- FUENTE ROBOTO -->
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 
 <style>
-/* ===== BASE ===== */
 body {
     margin: 0;
-    padding: 0;
     background: #ddd;
     font-family: 'Roboto', Arial, sans-serif;
 }
 
-/* ===== VIEWPORT ESCALABLE ===== */
 #viewport {
     width: 100%;
     height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    overflow: auto;
 }
 
-/* ===== FORMATO BASE ===== */
 #credencial {
     position: relative;
     width: 2040px;
@@ -35,12 +29,12 @@ body {
     transform-origin: top center;
 }
 
-/* ===== CAPA FOTO (NARANJA) ===== */
+/* FOTO */
 #capa-foto {
     position: absolute;
     top: 520px;
     left: 120px;
-    width: 1550px;
+    width: 1800px;
     height: 850px;
     border: 5px solid orange;
     z-index: 1;
@@ -48,13 +42,14 @@ body {
     justify-content: center;
     align-items: center;
 }
+
 #capa-foto img {
     height: 100%;
     width: auto;
     object-fit: contain;
 }
 
-/* ===== CAPA FONDO (ROJO) ===== */
+/* FONDO */
 #capa-fondo {
     position: absolute;
     inset: 0;
@@ -68,24 +63,34 @@ body {
     object-fit: cover;
 }
 
-/* ===== CAPA QR (VERDE) ===== */
+/* QR */
 #capa-qr {
     position: absolute;
-    bottom: 520px;
-    left: 200px;
-    width: 500px;
-    height: 500px;
+    bottom: 320px;
+    left: 120px;
+    width: 864px;
+    height: 850px;
     border: 5px solid green;
     z-index: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 #capa-qr img {
-    width: 100%;
-    height: 100%;
+    width: 500px;
+    height: 500px;
     object-fit: contain;
+    margin-top: 40px;
 }
 
-/* ===== CAPA TEXTO (MORADO) ===== */
+#qr-texto {
+    margin-top: 40px;
+    font-size: 40px;
+    text-align: center;
+}
+
+/* TEXTO */
 #capa-texto {
     position: absolute;
     bottom: 1300px;
@@ -96,41 +101,59 @@ body {
     box-sizing: border-box;
     border: 5px solid purple;
     z-index: 4;
-    color: #000;
     text-align: center;
 }
 
-/* ===== TEXTOS (MISMO TAMAÑO) ===== */
 #capa-texto div {
     font-size: 100px;
     font-weight: 700;
     margin-bottom: 25px;
 }
 
-/* ===== FECHAS FUERA DE CAPA TEXTO ===== */
-#fechas {
+/* LICENCIATURA */
+#licenciatura {
     position: absolute;
-    bottom: 900px; /* AJUSTABLE */
-    left: 120px;
-    font-size: 50px;
-    font-weight: 400;
+    bottom: 700px;
+    right: 120px;
+    width: 800px;
+    text-align: center;
     z-index: 5;
 }
 
-#fechas div {
-    margin-bottom: 15px;
+#licenciatura .titulo {
+    font-size: 80px;
+    color: red;
+    font-weight: 700;
 }
 
-/* ===== IMPRESIÓN ===== */
+#licenciatura .campus {
+    font-size: 60px;
+    color: red;
+    margin-bottom: 40px;
+}
+
+/* CUADROS INGRESO / EGRESO */
+#fechas {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+}
+
+.cuadro {
+    width: 160px;
+    height: 160px;
+    background: #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 70px;
+    font-weight: 700;
+}
+
+/* ESCALA */
 @media print {
-    body {
-        background: none;
-    }
     #credencial {
         transform: scale(1) !important;
-    }
-    #viewport {
-        height: auto;
     }
 }
 </style>
@@ -141,54 +164,56 @@ body {
 <div id="viewport">
 <div id="credencial">
 
-    <!-- FOTO -->
     <div id="capa-foto">
         <img id="foto">
     </div>
 
-    <!-- FONDO -->
     <div id="capa-fondo">
         <img id="fondo">
     </div>
 
-    <!-- QR -->
     <div id="capa-qr">
         <img id="qr">
+        <div id="qr-texto">
+            Para validar el estatus del alumno<br>
+            escanear el código QR.
+        </div>
     </div>
 
-    <!-- TEXTO PRINCIPAL -->
     <div id="capa-texto">
         <div id="nombre"></div>
         <div id="id"></div>
         <div id="carrera"></div>
     </div>
 
-    <!-- INGRESO / EGRESO (FUERA) -->
-    <div id="fechas">
-        <div id="ingreso"></div>
-        <div id="egreso"></div>
+    <div id="licenciatura">
+        <div class="titulo">LICENCIATURA</div>
+        <div class="campus">Campus Cuautitlán</div>
+        <div id="fechas">
+            <div class="cuadro" id="ingreso"></div>
+            <div class="cuadro" id="egreso"></div>
+        </div>
     </div>
 
 </div>
 </div>
 
 <script>
-/* ===== ESCALADO AUTOMÁTICO ===== */
 const BASE_WIDTH = 2040;
 const BASE_HEIGHT = 3325;
 
 function ajustarEscala() {
     const viewport = document.getElementById("viewport");
-    const scaleX = viewport.clientWidth / BASE_WIDTH;
-    const scaleY = viewport.clientHeight / BASE_HEIGHT;
-    const scale = Math.min(scaleX, scaleY);
+    const scale = Math.min(
+        viewport.clientWidth / BASE_WIDTH,
+        viewport.clientHeight / BASE_HEIGHT
+    );
     document.getElementById("credencial").style.transform = `scale(${scale})`;
 }
 
 window.addEventListener("resize", ajustarEscala);
 window.addEventListener("load", ajustarEscala);
 
-/* ===== CSV ===== */
 const CSV_URL =
 "https://docs.google.com/spreadsheets/d/e/2PACX-1vR7VpRlusZqfiI-WB16JvLtLpX-kkCFZWiKgTMQzW35p_tfOGxY_tpQRW56XnAOdKIA_1F-4uSuX47P/pub?gid=970287024&single=true&output=csv";
 
@@ -207,7 +232,6 @@ async function cargarDatos() {
 
     const headers = data[0];
     const rows = data.slice(1);
-
     const fila = rows.find(r => r[headers.indexOf("ID9DIG")] === matriculaBuscar);
     if (!fila) return;
 
@@ -217,11 +241,12 @@ async function cargarDatos() {
     document.getElementById("fondo").src = get("Fondo");
     document.getElementById("qr").src = get("QR");
 
-    document.getElementById("nombre").textContent  = get("Nombre");
-    document.getElementById("id").textContent      = "ID: " + get("ID9DIG");
+    document.getElementById("nombre").textContent = get("Nombre");
+    document.getElementById("id").textContent = "ID: " + get("ID9DIG");
     document.getElementById("carrera").textContent = get("Carrera");
-    document.getElementById("ingreso").textContent = "Ingreso: " + get("AñoIngreso");
-    document.getElementById("egreso").textContent  = "Egreso: " + get("AñoEgreso");
+
+    document.getElementById("ingreso").textContent = get("AñoIngreso");
+    document.getElementById("egreso").textContent = get("AñoEgreso");
 }
 
 cargarDatos();
