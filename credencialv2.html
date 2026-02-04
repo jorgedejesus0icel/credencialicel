@@ -8,12 +8,18 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 <style>
+/* =====================
+   BASE
+===================== */
 body {
     margin: 0;
     background: #ccc;
     font-family: 'Roboto', Arial, sans-serif;
 }
 
+/* =====================
+   VISUALIZACIÓN
+===================== */
 #viewport {
     width: 100%;
     height: 100vh;
@@ -22,16 +28,18 @@ body {
     align-items: center;
 }
 
-/* Lienzo */
+/* lienzo grande SOLO pantalla */
 #credencial {
     position: relative;
     width: 2040px;
     height: 3325px;
     background: #fff;
-    transform-origin: top center;
+    transform-origin: center top;
 }
 
-/* FOTO */
+/* =====================
+   CAPAS
+===================== */
 #capa-foto {
     position: absolute;
     top: 520px;
@@ -39,9 +47,6 @@ body {
     width: 1600px;
     height: 855px;
     z-index: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
 }
 #capa-foto img {
     height: 100%;
@@ -49,7 +54,6 @@ body {
     object-fit: contain;
 }
 
-/* FONDO */
 #capa-fondo {
     position: absolute;
     inset: 0;
@@ -61,7 +65,6 @@ body {
     object-fit: cover;
 }
 
-/* QR */
 #capa-qr {
     position: absolute;
     bottom: 320px;
@@ -76,11 +79,9 @@ body {
     object-fit: contain;
 }
 
-/* TEXTO */
 #capa-texto {
     position: absolute;
     bottom: 1300px;
-    left: 0;
     width: 100%;
     padding: 40px 120px;
     text-align: center;
@@ -91,7 +92,6 @@ body {
     font-weight: 700;
 }
 
-/* FECHAS */
 #licenciatura {
     position: absolute;
     bottom: 310px;
@@ -100,6 +100,7 @@ body {
     text-align: center;
     z-index: 5;
 }
+
 #fechas {
     display: flex;
     justify-content: center;
@@ -108,14 +109,16 @@ body {
 .cuadro {
     width: 160px;
     height: 160px;
+    font-size: 70px;
+    font-weight: 700;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 70px;
-    font-weight: 700;
 }
 
-/* BOTÓN */
+/* =====================
+   BOTÓN
+===================== */
 #btn-pdf {
     position: fixed;
     top: 20px;
@@ -124,6 +127,36 @@ body {
     font-size: 16px;
     font-weight: bold;
     z-index: 999;
+}
+
+/* =====================
+   IMPRESIÓN / PDF
+===================== */
+@media print {
+    html, body {
+        width: 53.98mm;
+        height: 85.6mm;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+    }
+
+    #viewport {
+        display: block;
+        width: auto;
+        height: auto;
+    }
+
+    #credencial {
+        width: 53.98mm !important;
+        height: 85.6mm !important;
+        transform: none !important;
+        page-break-inside: avoid;
+    }
+
+    #btn-pdf {
+        display: none;
+    }
 }
 </style>
 </head>
@@ -135,17 +168,9 @@ body {
 <div id="viewport">
 <div id="credencial">
 
-    <div id="capa-foto">
-        <img id="foto" crossorigin="anonymous">
-    </div>
-
-    <div id="capa-fondo">
-        <img id="fondo" crossorigin="anonymous">
-    </div>
-
-    <div id="capa-qr">
-        <img id="qr" crossorigin="anonymous">
-    </div>
+    <div id="capa-foto"><img id="foto" crossorigin="anonymous"></div>
+    <div id="capa-fondo"><img id="fondo" crossorigin="anonymous"></div>
+    <div id="capa-qr"><img id="qr" crossorigin="anonymous"></div>
 
     <div id="capa-texto">
         <div id="nombre"></div>
@@ -168,15 +193,15 @@ const BASE_WIDTH = 2040;
 const BASE_HEIGHT = 3325;
 let nombreArchivoPDF = "credencial";
 
-/* ESCALA CONTROLADA */
+/* ESCALA SOLO PANTALLA */
 function ajustarEscala() {
-    const v = document.getElementById("viewport");
+    const v = viewport;
     let scale = Math.min(
         v.clientWidth / BASE_WIDTH,
         v.clientHeight / BASE_HEIGHT
     );
-    scale = Math.max(scale, 0.25); // ← CLAVE: mínimo visible
-    document.getElementById("credencial").style.transform = `scale(${scale})`;
+    scale = Math.max(scale, 0.3);
+    credencial.style.transform = `scale(${scale})`;
 }
 window.addEventListener("resize", ajustarEscala);
 window.addEventListener("load", ajustarEscala);
@@ -185,7 +210,7 @@ window.addEventListener("load", ajustarEscala);
 const CSV_URL =
 "https://docs.google.com/spreadsheets/d/e/2PACX-1vR7VpRlusZqfiI-WB16JvLtLpX-kkCFZWiKgTMQzW35p_tfOGxY_tpQRW56XnAOdKIA_1F-4uSuX47P/pub?gid=970287024&single=true&output=csv";
 
-const matriculaBuscar = new URLSearchParams(window.location.search).get("matricula");
+const matriculaBuscar = new URLSearchParams(location.search).get("matricula");
 
 function parseCSV(t) {
     return t.trim().split("\n").map(f => f.split(",").map(v => v.replace(/\"/g,"").trim()));
@@ -215,20 +240,17 @@ async function cargarDatos() {
 }
 cargarDatos();
 
-/* PDF */
+/* PDF CR80 VERTICAL */
 btn-pdf.onclick = () => {
     html2pdf().set({
         margin: 0,
         filename: `${nombreArchivoPDF}.pdf`,
         image: { type: 'jpeg', quality: 1 },
-        html2canvas: {
-            scale: 3,
-            useCORS: true
-        },
+        html2canvas: { scale: 3, useCORS: true },
         jsPDF: {
             unit: 'mm',
-            format: [85.6, 53.98],
-            orientation: 'landscape'
+            format: [53.98, 85.6],
+            orientation: 'portrait'
         }
     }).from(credencial).save();
 };
