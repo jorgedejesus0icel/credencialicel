@@ -8,49 +8,52 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 <style>
-/* =====================
+/* ======================
    BASE
-===================== */
+====================== */
 body {
     margin: 0;
     background: #ccc;
     font-family: 'Roboto', Arial, sans-serif;
 }
 
-/* =====================
-   VISUALIZACIÓN
-===================== */
+/* ======================
+   CONTENEDOR PANTALLA
+====================== */
 #viewport {
-    width: 100%;
+    width: 100vw;
     height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
-/* lienzo grande SOLO pantalla */
+/* ======================
+   LIENZO RESPONSIVE
+   (pantalla)
+====================== */
 #credencial {
     position: relative;
-    width: 2040px;
-    height: 3325px;
+    width: min(90vw, 360px);
+    aspect-ratio: 53.98 / 85.6; /* CR80 vertical */
     background: #fff;
-    transform-origin: center top;
+    box-shadow: 0 0 25px rgba(0,0,0,.35);
 }
 
-/* =====================
-   CAPAS
-===================== */
+/* ======================
+   CAPAS (porcentual)
+====================== */
 #capa-foto {
     position: absolute;
-    top: 520px;
-    left: 120px;
-    width: 1600px;
-    height: 855px;
+    top: 16%;
+    left: 6%;
+    width: 88%;
+    height: 26%;
     z-index: 1;
 }
 #capa-foto img {
+    width: 100%;
     height: 100%;
-    width: auto;
     object-fit: contain;
 }
 
@@ -67,10 +70,10 @@ body {
 
 #capa-qr {
     position: absolute;
-    bottom: 320px;
-    left: 120px;
-    width: 850px;
-    height: 850px;
+    bottom: 6%;
+    left: 6%;
+    width: 32%;
+    aspect-ratio: 1;
     z-index: 3;
 }
 #capa-qr img {
@@ -81,57 +84,54 @@ body {
 
 #capa-texto {
     position: absolute;
-    bottom: 1300px;
+    top: 46%;
     width: 100%;
-    padding: 40px 120px;
+    padding: 0 6%;
     text-align: center;
     z-index: 4;
 }
 #capa-texto div {
-    font-size: 100px;
     font-weight: 700;
+    font-size: 1.2rem;
 }
 
 #licenciatura {
     position: absolute;
-    bottom: 310px;
-    right: 180px;
-    width: 800px;
+    bottom: 6%;
+    right: 6%;
+    width: 38%;
     text-align: center;
     z-index: 5;
 }
-
 #fechas {
     display: flex;
     justify-content: center;
-    gap: 40px;
+    gap: 8px;
 }
 .cuadro {
-    width: 160px;
-    height: 160px;
-    font-size: 70px;
+    width: 36px;
+    height: 36px;
     font-weight: 700;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-/* =====================
+/* ======================
    BOTÓN
-===================== */
+====================== */
 #btn-pdf {
     position: fixed;
     top: 20px;
     right: 20px;
     padding: 14px 22px;
-    font-size: 16px;
     font-weight: bold;
     z-index: 999;
 }
 
-/* =====================
+/* ======================
    IMPRESIÓN / PDF
-===================== */
+====================== */
 @media print {
     html, body {
         width: 53.98mm;
@@ -142,7 +142,6 @@ body {
     }
 
     #viewport {
-        display: block;
         width: auto;
         height: auto;
     }
@@ -150,7 +149,7 @@ body {
     #credencial {
         width: 53.98mm !important;
         height: 85.6mm !important;
-        transform: none !important;
+        box-shadow: none;
         page-break-inside: avoid;
     }
 
@@ -189,22 +188,7 @@ body {
 </div>
 
 <script>
-const BASE_WIDTH = 2040;
-const BASE_HEIGHT = 3325;
 let nombreArchivoPDF = "credencial";
-
-/* ESCALA SOLO PANTALLA */
-function ajustarEscala() {
-    const v = viewport;
-    let scale = Math.min(
-        v.clientWidth / BASE_WIDTH,
-        v.clientHeight / BASE_HEIGHT
-    );
-    scale = Math.max(scale, 0.3);
-    credencial.style.transform = `scale(${scale})`;
-}
-window.addEventListener("resize", ajustarEscala);
-window.addEventListener("load", ajustarEscala);
 
 /* CSV */
 const CSV_URL =
@@ -240,7 +224,7 @@ async function cargarDatos() {
 }
 cargarDatos();
 
-/* PDF CR80 VERTICAL */
+/* PDF – 1 SOLA PÁGINA */
 btn-pdf.onclick = () => {
     html2pdf().set({
         margin: 0,
