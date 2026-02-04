@@ -146,8 +146,24 @@ body {
 
 /* ESCALA */
 @media print {
+    body {
+        background: #fff;
+    }
+
+    #viewport {
+        height: auto;
+    }
+
     #credencial {
         transform: scale(1) !important;
+        width: 2040px;
+        height: 3325px;
+        page-break-after: avoid;
+    }
+
+    @page {
+        size: A4;
+        margin: 0;
     }
 }
 </style>
@@ -213,6 +229,7 @@ function parseCSV(texto) {
         .map(f => f.split(",").map(v => v.replace(/\"/g, "").trim()));
 }
 
+<script>
 async function cargarDatos() {
     const resp = await fetch(CSV_URL);
     const texto = await resp.text();
@@ -235,6 +252,22 @@ async function cargarDatos() {
 
     document.getElementById("ingreso").textContent = get("AñoIngreso");
     document.getElementById("egreso").textContent = get("AñoEgreso");
+
+    // ⏳ Espera a que carguen las imágenes
+    await Promise.all(
+        ["foto", "fondo", "qr"].map(id =>
+            new Promise(res => {
+                const img = document.getElementById(id);
+                if (img.complete) res();
+                else img.onload = res;
+            })
+        )
+    );
+
+    // 🖨️ Abrir impresión automáticamente
+    setTimeout(() => {
+        window.print();
+    }, 500);
 }
 
 cargarDatos();
