@@ -1,3 +1,6 @@
+
+
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -29,36 +32,35 @@ body {
     transform-origin: top center;
 }
 
-/* FONDO */
-#capa-fondo {
-    position: absolute;
-    inset: 0;
-    border: 5px solid red;
-    z-index: 1;
-}
-
-#capa-foto img {
-    width: auto;
-    height: 100%;
-    object-fit: contain;
-}
-
 /* FOTO */
 #capa-foto {
     position: absolute;
     top: 520px;
     left: 120px;
-    width: 1600px;
-    height: 855px;
+    width: 1800px;
+    height: 850px;
     border: 5px solid orange;
-    z-index: 0;
+    z-index: 1;
     display: flex;
     justify-content: center;
     align-items: center;
-    overflow: hidden;
 }
 
 #capa-foto img {
+    height: 100%;
+    width: auto;
+    object-fit: contain;
+}
+
+/* FONDO */
+#capa-fondo {
+    position: absolute;
+    inset: 0;
+    border: 5px solid red;
+    z-index: 2;
+}
+
+#capa-fondo img {
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -74,14 +76,21 @@ body {
     border: 5px solid green;
     z-index: 3;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
 }
 
 #capa-qr img {
-    width: 100%;
-    height: 100%;
+    width: 500px;
+    height: 500px;
     object-fit: contain;
+    margin-top: 40px;
+}
+
+#qr-texto {
+    margin-top: 40px;
+    font-size: 40px;
+    text-align: center;
 }
 
 /* TEXTO */
@@ -107,13 +116,26 @@ body {
 /* LICENCIATURA */
 #licenciatura {
     position: absolute;
-    bottom: 310px;
-    right: 180px;
+    bottom: 700px;
+    right: 120px;
     width: 800px;
     text-align: center;
     z-index: 5;
 }
 
+#licenciatura .titulo {
+    font-size: 80px;
+    color: red;
+    font-weight: 700;
+}
+
+#licenciatura .campus {
+    font-size: 60px;
+    color: red;
+    margin-bottom: 40px;
+}
+
+/* CUADROS INGRESO / EGRESO */
 #fechas {
     display: flex;
     justify-content: center;
@@ -123,15 +145,15 @@ body {
 .cuadro {
     width: 160px;
     height: 160px;
+    background: #e0e0e0;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 70px;
     font-weight: 700;
-    background: #e0e0e0;
 }
 
-/* ESCALADO */
+/* ESCALA */
 @media print {
     #credencial {
         transform: scale(1) !important;
@@ -145,16 +167,20 @@ body {
 <div id="viewport">
 <div id="credencial">
 
-    <div id="capa-fondo">
-        <img id="fondo">
-    </div>
-
     <div id="capa-foto">
         <img id="foto">
     </div>
 
+    <div id="capa-fondo">
+        <img id="fondo">
+    </div>
+
     <div id="capa-qr">
         <img id="qr">
+        <div id="qr-texto">
+            Para validar el estatus del alumno<br>
+            escanear el código QR.
+        </div>
     </div>
 
     <div id="capa-texto">
@@ -164,6 +190,8 @@ body {
     </div>
 
     <div id="licenciatura">
+        <div class="titulo">LICENCIATURA</div>
+        <div class="campus">Campus Cuautitlán</div>
         <div id="fechas">
             <div class="cuadro" id="ingreso"></div>
             <div class="cuadro" id="egreso"></div>
@@ -229,3 +257,5 @@ cargarDatos();
 
 </body>
 </html>
+
+
