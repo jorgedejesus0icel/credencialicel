@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Credencial</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+
+<!-- html2pdf -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<style>
+body {
+    margin: 0;
+    background: #ddd;
+    font-family: 'Roboto', Arial, sans-serif;
+}
+
+/* VISUALIZACIÓN */
+#viewport {
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* LIENZO BASE (pantalla) */
+#credencial {
+    position: relative;
+    width: 2040px;
+    height: 3325px;
+    background: #fff;
+    transform-origin: top center;
+}
+
+/* FOTO */
+#capa-foto {
+    position: absolute;
+    top: 520px;
+    left: 120px;
+    width: 1600px;
+    height: 855px;
+    z-index: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+#capa-foto img {
+    height: 100%;
+    width: auto;
+    object-fit: contain;
+}
+
+/* FONDO */
+#capa-fondo {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+}
+#capa-fondo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* QR */
+#capa-qr {
+    position: absolute;
+    bottom: 320px;
+    left: 120px;
+    width: 850px;
+    height: 850px;
+    z-index: 3;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+#capa-qr img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* TEXTO */
+#capa-texto {
+    position: absolute;
+    bottom: 1300px;
+    left: 0;
+    width: 100%;
+    height: 520px;
+    padding: 40px 120px;
+    box-sizing: border-box;
+    z-index: 4;
+    text-align: center;
+}
+#capa-texto div {
+    font-size: 100px;
+    font-weight: 700;
+    margin-bottom: 25px;
+}
+
+/* LICENCIATURA */
+#licenciatura {
+    position: absolute;
+    bottom: 310px;
+    right: 180px;
+    width: 800px;
+    text-align: center;
+    z-index: 5;
+}
+#fechas {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+}
+.cuadro {
+    width: 160px;
+    height: 160px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 70px;
+    font-weight: 700;
+}
+
+/* BOTÓN */
+#btn-pdf {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 14px 22px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 999;
+}
+
+/* IMPRESIÓN / PDF */
+@media print {
+    body { margin: 0; }
+    #credencial {
+        width: 85.6mm !important;
+        height: 53.98mm !important;
+        transform: none !important;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<button id="btn-pdf">Descargar PDF</button>
+
+<div id="viewport">
+<div id="credencial">
+
+    <div id="capa-foto"><img id="foto"></div>
+    <div id="capa-fondo"><img id="fondo"></div>
+    <div id="capa-qr"><img id="qr"></div>
+
+    <div id="capa-texto">
+        <div id="nombre"></div>
+        <div id="id"></div>
+        <div id="carrera"></div>
+    </div>
+
+    <div id="licenciatura">
+        <div id="fechas">
+            <div class="cuadro" id="ingreso"></div>
+            <div class="cuadro" id="egreso"></div>
+        </div>
+    </div>
+
+</div>
+</div>
+
+<script>
+const BASE_WIDTH = 2040;
+const BASE_HEIGHT = 3325;
+let nombreArchivoPDF = "credencial";
+
+/* ESCALADO PANTALLA */
+function ajustarEscala() {
+    const v = document.getElementById("viewport");
+    const s = Math.min(v.clientWidth / BASE_WIDTH, v.clientHeight / BASE_HEIGHT);
+    document.getElementById("credencial").style.transform = `scale(${s})`;
+}
+window.addEventListener("resize", ajustarEscala);
+window.addEventListener("load", ajustarEscala);
+
+/* CSV */
+const CSV_URL =
+"https://docs.google.com/spreadsheets/d/e/2PACX-1vR7VpRlusZqfiI-WB16JvLtLpX-kkCFZWiKgTMQzW35p_tfOGxY_tpQRW56XnAOdKIA_1F-4uSuX47P/pub?gid=970287024&single=true&output=csv";
+
+const matriculaBuscar = new URLSearchParams(window.location.search).get("matricula");
+
+function parseCSV(t) {
+    return t.trim().split("\n").map(f => f.split(",").map(v => v.replace(/\"/g,"").trim()));
+}
+
+async function cargarDatos() {
+    const resp = await fetch(CSV_URL);
+    const data = parseCSV(await resp.text());
+    const headers = data[0];
+    const fila = data.slice(1).find(r => r[headers.indexOf("ID9DIG")] === matriculaBuscar);
+    if (!fila) return;
+
+    const get = c => fila[headers.indexOf(c)];
+
+    document.getElementById("foto").src = get("Foto");
+    document.getElementById("fondo").src = get("Fondo");
+    document.getElementById("qr").src = get("QR");
+
+    document.getElementById("nombre").textContent = get("Nombre");
+    document.getElementById("id").textContent = "ID: " + get("ID9DIG");
+    document.getElementById("carrera").textContent = get("Carrera");
+
+    document.getElementById("ingreso").textContent = get("AñoIngreso");
+    document.getElementById("egreso").textContent = get("AñoEgreso");
+
+    nombreArchivoPDF = get("nombre cred");
+}
+cargarDatos();
+
+/* EXPORTAR PDF CR80 */
+document.getElementById("btn-pdf").onclick = () => {
+    const el = document.getElementById("credencial");
+
+    html2pdf().set({
+        margin: 0,
+        filename: `${nombreArchivoPDF}.pdf`,
+        image: { type: 'jpeg', quality: 1 },
+        html2canvas: {
+            scale: 3,
+            useCORS: true,
+            backgroundColor: null
+        },
+        jsPDF: {
+            unit: 'mm',
+            format: [85.6, 53.98],
+            orientation: 'landscape'
+        }
+    }).from(el).save();
+};
+</script>
+
+</body>
+</html>
